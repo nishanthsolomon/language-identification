@@ -1,14 +1,16 @@
 import fasttext
 import os
 
-
-from language_identification.prepare_data import select_data
+from language_identification.prepare_data import PrepareData
 
 
 class LanguageIdentification():
-    def __init__(self) -> None:
-        model_directory = 'model/'
+    def __init__(self, model_directory='model/', data_directory='data/') -> None:
         self.model_path = model_directory + 'language_identification_model.bin'
+
+        self.prepare_data = PrepareData()
+        self.train_file = data_directory + 'train.txt'
+        self.test_file = data_directory + 'test.txt'
 
         if not os.path.isfile(self.model_path):
             print('Language Detection model not present')
@@ -20,21 +22,16 @@ class LanguageIdentification():
         print('Model loaded from ', self.model_path)
 
     def train_model(self):
-        train_file_path = 'data/train.txt'
+        if self.prepare_data.check_files():
+            print('Model training starting')
+            model = fasttext.train_supervised(
+                self.train_file, dim=16, minn=2, maxn=4, loss='hs')
 
-        if not os.path.isfile(train_file_path):
-            print('Train file not present')
-            select_data()
+            model.save_model(self.model_path)
 
-        print('Model training starting')
-        model = fasttext.train_supervised(
-            train_file_path, dim=16, minn=2, maxn=4, loss='hs')
+            print('Model trained and saved to ', self.model_path)
 
-        model.save_model(self.model_path)
-
-        print('Model trained and saved to ', self.model_path)
-
-        self.print_results(*model.test('data/test.txt'))
+            self.print_results(*model.test(self.test_file))
 
     def predict(self, text):
         prediction = self.model.predict(text)
@@ -48,11 +45,8 @@ class LanguageIdentification():
         print("P@{}\t{:.3f}".format(1, p))
         print("R@{}\t{:.3f}".format(1, r))
 
-    def test_model(self):
-        self.print_results(*self.model.test('data/test.txt'))
 
+# if __name__ == '__main__':
+#     language_identification = LanguageIdentification()
 
-if __name__ == '__main__':
-    language_identification = LanguageIdentification()
-
-    print(language_identification.predict('this is a test for english'))
+#     print(language_identification.predict('this is a test for english'))

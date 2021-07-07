@@ -1,15 +1,19 @@
 import fasttext
 import os
 
-from prepare_data import select_data
+
+from language_identification.prepare_data import select_data
 
 
 class LanguageIdentification():
     def __init__(self) -> None:
-        self.model_path = 'model/language_identification_model.bin'
+        model_directory = 'model/'
+        self.model_path = model_directory + 'language_identification_model.bin'
 
         if not os.path.isfile(self.model_path):
             print('Language Detection model not present')
+            if not os.path.exists(model_directory):
+                os.makedirs(model_directory)
             self.train_model()
 
         self.model = fasttext.load_model(self.model_path)

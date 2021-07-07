@@ -6,10 +6,12 @@ import os
 import pandas as pd
 
 
-data_directory = './data/'
+data_directory = 'data/'
 
 
 def download_data():
+    if not os.path.exists(data_directory):
+        os.makedirs(data_directory)
 
     download_file = data_directory + 'sentences.tar.bz2'
     tar_file = data_directory + 'sentences.tar'
@@ -59,7 +61,7 @@ def select_data():
 
     print('Splitting the selected sentences into train and test set')
     for _, row in selected_languages.iterrows():
-        select_df = sentences_df[sentences_df['language'] == row['language']]
+        select_df = sentences_df[sentences_df['language'].astype(str) == row['language']]
         n = len(select_df)//10
 
         test_dfs.append(select_df.iloc[:n])
